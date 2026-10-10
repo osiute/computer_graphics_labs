@@ -3,10 +3,10 @@
 #include <string>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "../libraries/stb_image.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "../libraries/stb_image_write.h"
 
 // Вспомогательная функция для установки цвета пикселя
 void set_pixel(unsigned char* img, int width, int height, int channels, int x, int y, unsigned char r, unsigned char g, unsigned char b) {
