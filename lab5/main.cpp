@@ -7,47 +7,51 @@
 int main() {
     std::setlocale(LC_ALL, "Russian");
 
-    try {
-        std::cout << "1. Читаем image1.ppm и image2.ppm...\n";
-        Image img1 = read_ppm_p3("image1.ppm");
-        Image img2 = read_ppm_p3("image2.ppm");
-
-        std::cout << "2. Применяем фильтр по варианту (насыщенность +30% для V < 0.5)...\n";
-        apply_variant_filter(img1);
-        write_ppm_p3("result_filter.ppm", img1);
-        std::cout << "Фильтр применен, результат сохранен в result_filter.ppm\n";
-
-        std::cout << "3. Проверяем наложение (альфа-блендинг, alpha = 0.5)...\n";
-        Image blended = blend_images(img1, img2, 0.5);
-        write_ppm_p3("result_blend.ppm", blended);
-        std::cout << "Наложение выполнено, результат сохранен в result_blend.ppm\n";
-
-        std::cout << "\nВсё работает корректно!\n";
-    } catch (const std::exception& e) {
-        std::cerr << "Ошибка: " << e.what() << "\n";
-        return 1;
-    }
-
-    std::string file1_path;
-    std::string file2_path;
-    std::string output_path;
+    std::string input_file1_path;
+    std::string filtered_file1_path;
+    std::string input_file2_path;
+    std::string filtered_file2_path;
+    std::string blend_output_path;
 
     std::cout << "=== Лабораторная работа #5: Попиксельные преобразования ===" << std::endl;
 
     std::cout << "Введите путь к первому исходному файлу (.ppm): ";
-    std::cin >> file1_path;
+    std::cin >> input_file1_path;
+    std::cout << "Укажите, в каком файле вы хотите увидеть изменённое первое изображение (.ppm): ";
+    std::cin >> filtered_file1_path;
 
     std::cout << "Введите путь ко второму исходному файлу (.ppm): ";
-    std::cin >> file2_path;
+    std::cin >> input_file2_path;
+    std::cout << "Укажите, в каком файле вы хотите увидеть изменённое второе изображение (.ppm): ";
+    std::cin >> filtered_file2_path;
 
     std::cout << "Введите путь для сохранения результата (.ppm): ";
-    std::cin >> output_path;
+    std::cin >> blend_output_path;
 
-    std::cout << "\n--- Проверка введенных данных (Заглушка) ---" << std::endl;
-    std::cout << "Первое изображение: " << file1_path << std::endl;
-    std::cout << "Второе изображение: " << file2_path << std::endl;
-    std::cout << "Файл результата:    " << output_path << std::endl;
-    std::cout << "Статус: интерактивный ввод работает успешно. Готовы подключать логику чтения и фильтров!" << std::endl;
+    try {
+        std::cout << "\n[1/5] Чтение исходных изображений с диска..." << std::endl;
+        Image img1 = read_ppm_p3(input_file1_path);
+        Image img2 = read_ppm_p3(input_file2_path);
+
+        std::cout << "[2/5] Применение фильтра к первому изображению и сохранение..." << std::endl;
+        apply_variant_filter(img1);
+        write_ppm_p3(filtered_file1_path, img1);
+
+        std::cout << "[3/5] Применение фильтра ко второму изображению и сохранение..." << std::endl;
+        apply_variant_filter(img2);
+        write_ppm_p3(filtered_file2_path, img2);
+
+        std::cout << "[4/5] Наложение измененных изображений с прозрачностью (alpha = 0.5)..." << std::endl;
+        Image blended = blend_images(img1, img2, 0.5);
+
+        std::cout << "[5/5] Сохранение итогового результата в файл " << blend_output_path << "..." << std::endl;
+        write_ppm_p3(blend_output_path, blended);
+
+        std::cout << "\nУспех! Все этапы обработки успешно завершены." << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Ошибка: " << e.what() << std::endl;
+        return 1;
+    }
 
     return 0;
 }
