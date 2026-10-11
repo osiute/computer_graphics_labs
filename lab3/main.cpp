@@ -9,9 +9,12 @@
 #include "bresenham.h"
 #include "svg_handler.h"
 
+const int PBM_WIDTH = 600;
+const int PBM_HEIGHT = 600;
+
 void generate_svg_and_save_segments(const std::string& filename, double radius, double initial_angle) {
-    int width = 400;
-    int height = 400;
+    int width = PBM_WIDTH / 2;
+    int height = PBM_HEIGHT / 2;
     int cx = width / 2;
     int cy = height / 2;
     auto segments = get_pentagram_segments(cx, cy, radius, initial_angle);
@@ -26,13 +29,14 @@ int main() {
     std::string svg_filename;
     std::string pbm_filename;
 
+    int max_allowed_radius = std::max(PBM_WIDTH, PBM_HEIGHT) / 4;
     while (true){
         std::cout << "Введите радиус описанной окружности (например, 150): ";
         std::cin >> radius;
-        if (radius > 0 && radius <= 200) {
+        if (radius > 0 && radius <= max_allowed_radius) {
             break;
         } else {
-            std::cout << "Радиус должен соответствовать требованию: 0 < R <= 200!" << std::endl;
+            std::cout << "Радиус должен соответствовать требованию: 0 < R <= " << max_allowed_radius << "!" << std::endl;
         }
     }
 
