@@ -6,11 +6,13 @@
 #define cimg_display 0
 #include "../libraries/CImg.h"
 #include "svg_handler.h"
+#include "geometry.h"
 
 using namespace cimg_library;
 
-void builtin_draw_segments(Canvas& canvas, const std::string& filename) {
+void builtin_draw_segments(Canvas& canvas, const std::string& filename, int x_offset, int y_offset) {
     auto segments = read_segments_from_svg(filename);
+    offset_segments(segments, x_offset, y_offset);
     int height = canvas.size();
     assert (height > 0);
     int width = canvas[0].size();

@@ -61,7 +61,11 @@ int main() {
     draw_grid(canvas, cx, cy);
 
     std::cout << "[Шаг 3] Растеризация (4 пентаграммы 4 разными алгоритмами)..." << std::endl;
-    builtin_draw_segments(canvas, svg_filename);
+    int x_offset = 0, y_offset = 0;
+
+    x_offset = cx;
+    y_offset = cy;
+    builtin_draw_segments(canvas, svg_filename, x_offset, y_offset);
 
     std::cout << "[Шаг 4] Сохранение итогового растра в PBM файл: " << pbm_filename << "..." << std::endl;
     save_canvas_to_pbm(pbm_filename, canvas);

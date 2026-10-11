@@ -3,4 +3,4 @@
 #include "geometry.h"
 #include "canvas.h"
 
-void builtin_draw_segments(Canvas& canvas, const std::string& filename);
+void builtin_draw_segments(Canvas& canvas, const std::string& filename, int x_offset, int y_offset);
