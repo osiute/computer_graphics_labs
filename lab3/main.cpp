@@ -10,6 +10,7 @@
 #include "svg_handler.h"
 #include "canvas.h"
 #include "builtin_draw.h"
+#include "integer_bresenham_draw.h"
 
 const int PBM_WIDTH = 1000;
 const int PBM_HEIGHT = 1000;
@@ -69,6 +70,7 @@ int main() {
 
     x_offset = 0;
     y_offset = cy;
+    integer_bresenham_draw_segments(canvas, svg_filename, x_offset, y_offset);
 
 
     x_offset = cx;
