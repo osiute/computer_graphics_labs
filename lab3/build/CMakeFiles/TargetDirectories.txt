@@ -1,0 +1,3 @@
+/home/giefther/computer_graphics_labs/lab3/build/CMakeFiles/pentagram_app.dir
+/home/giefther/computer_graphics_labs/lab3/build/CMakeFiles/edit_cache.dir
+/home/giefther/computer_graphics_labs/lab3/build/CMakeFiles/rebuild_cache.dir

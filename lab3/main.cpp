@@ -9,6 +9,7 @@
 #include "bresenham.h"
 #include "svg_handler.h"
 #include "canvas.h"
+#include "builtin_draw.h"
 
 const int PBM_WIDTH = 600;
 const int PBM_HEIGHT = 600;
@@ -59,8 +60,8 @@ int main() {
     int cy = PBM_HEIGHT / 2;
     draw_grid(canvas, cx, cy);
 
-
-    // и растеризация (4 алгоритма в 4 квадрантах)
+    std::cout << "[Шаг 3] Растеризация (4 пентаграммы 4 разными алгоритмами)..." << std::endl;
+    builtin_draw_segments(canvas, svg_filename);
 
     std::cout << "[Шаг 4] Сохранение итогового растра в PBM файл: " << pbm_filename << "..." << std::endl;
     save_canvas_to_pbm(pbm_filename, canvas);

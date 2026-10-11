@@ -1,5 +1,6 @@
 #include "geometry.h"
 #include <cmath>
+#include <cassert>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -28,7 +29,7 @@ std::vector<Point> calculate_pentagram_vertices(int cx, int cy, int radius, doub
 }
 
 std::vector<Segment> get_pentagram_segments(const std::vector<Point>& vertices) {
-    if (vertices.size() < 5) return {};
+    assert (vertices.size() == 5);
 
     std::vector<Segment> segments;
     // Порядок соединения: 0 -> 2 -> 4 -> 1 -> 3 -> 0

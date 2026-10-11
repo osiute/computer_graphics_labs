@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/pentagram_app.dir/main.cpp.o CMakeFiles/pentagram_app.dir/geometry.cpp.o CMakeFiles/pentagram_app.dir/svg_handler.cpp.o CMakeFiles/pentagram_app.dir/canvas.cpp.o CMakeFiles/pentagram_app.dir/builtin_draw.cpp.o -o pentagram_app 
