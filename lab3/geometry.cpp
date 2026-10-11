@@ -15,7 +15,7 @@ std::vector<Point> calculate_pentagram_vertices(int cx, int cy, int radius, doub
         
         // Вычисляем координаты с плавающей точкой
         double x = cx + radius * std::cos(current_angle);
-        double y = cy + radius * std::sin(current_angle);
+        double y = cy - radius * std::sin(current_angle);
         
         // Округляем до ближайшего целого пикселя и сохраняем
         vertices[i] = {

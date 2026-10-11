@@ -7,6 +7,16 @@
 #include "geometry.h"
 #include "dda.h"
 #include "bresenham.h"
+#include "svg_handler.h"
+
+void generate_svg_and_save_segments(const std::string& filename, double radius, double initial_angle) {
+    int width = 400;
+    int height = 400;
+    int cx = width / 2;
+    int cy = height / 2;
+    auto segments = get_pentagram_segments(cx, cy, radius, initial_angle);
+    save_segments_to_svg(filename, segments, width, height);
+}
 
 int main() {
     std::cout << "=== Лабораторная работа: Растеризация пентаграммы ==-\n\n" << std::endl;
@@ -36,9 +46,7 @@ int main() {
     std::cin >> pbm_filename;
 
     std::cout << "\n[Шаг 1] Генерация и сохранение отрезков в SVG файл: " << svg_filename << "..." << std::endl;
-    int cx = 200;
-    int cy = 200;
-    auto segments = get_pentagram_segments(cx, cy, radius, initial_angle);
+    generate_svg_and_save_segments(svg_filename, radius, initial_angle);
 
     std::cout << "[Шаг 2] Чтение отрезков из SVG файла..." << std::endl;
     // Заглушка: здесь будет функция парсинга SVG
