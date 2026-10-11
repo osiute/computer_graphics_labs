@@ -11,7 +11,6 @@
 int main() {
     std::cout << "=== Лабораторная работа: Растеризация пентаграммы ==-\n\n" << std::endl;
 
-    // 1. Интерактивный ввод параметров от пользователя
     double radius = 0.0;
     double initial_angle = 0.0;
     std::string svg_filename;
@@ -37,8 +36,9 @@ int main() {
     std::cin >> pbm_filename;
 
     std::cout << "\n[Шаг 1] Генерация и сохранение отрезков в SVG файл: " << svg_filename << "..." << std::endl;
-    // Заглушка: здесь будет функция сохранения в SVG
-    // generate_and_save_svg(svg_filename, radius, initial_angle);
+    int cx = 200;
+    int cy = 200;
+    auto segments = get_pentagram_segments(cx, cy, radius, initial_angle);
 
     std::cout << "[Шаг 2] Чтение отрезков из SVG файла..." << std::endl;
     // Заглушка: здесь будет функция парсинга SVG
