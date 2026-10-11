@@ -48,3 +48,12 @@ std::vector<Segment> get_pentagram_segments(int cx, int cy, int radius, double i
     std::vector<Segment> segments = get_pentagram_segments(vertices);
     return segments;
 }
+
+void offset_segments(std::vector<Segment>& segments, int dx, int dy) {
+    for (auto& segment : segments) {
+        segment.p1.x += dx;
+        segment.p1.y += dy;
+        segment.p2.x += dx;
+        segment.p2.y += dy;
+    }
+}

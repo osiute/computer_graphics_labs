@@ -14,3 +14,5 @@ struct Segment {
 };
 
 std::vector<Segment> get_pentagram_segments(int cx, int cy, int radius, double initial_angle_deg);
+
+void offset_segments(std::vector<Segment>& segments, int dx, int dy);

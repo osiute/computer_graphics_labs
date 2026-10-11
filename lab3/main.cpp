@@ -8,6 +8,7 @@
 #include "dda.h"
 #include "bresenham.h"
 #include "svg_handler.h"
+#include "canvas.h"
 
 const int PBM_WIDTH = 600;
 const int PBM_HEIGHT = 600;
@@ -52,15 +53,17 @@ int main() {
     std::cout << "\n[Шаг 1] Генерация и сохранение отрезков в SVG файл: " << svg_filename << "..." << std::endl;
     generate_svg_and_save_segments(svg_filename, radius, initial_angle);
 
-    std::cout << "[Шаг 2] Чтение отрезков из SVG файла..." << std::endl;
-    // Заглушка: здесь будет функция парсинга SVG
-    // std::vector<Segment> segments = read_svg_segments(svg_filename);
+    std::cout << "[Шаг 2] Инициализация холста..." << std::endl;
+    auto canvas = create_canvas(PBM_WIDTH, PBM_HEIGHT);
+    int cx = PBM_WIDTH / 2;
+    int cy = PBM_HEIGHT / 2;
+    draw_grid(canvas, cx, cy);
 
-    std::cout << "[Шаг 3] Инициализация холста и растеризация (4 алгоритма в 4 квадрантах)..." << std::endl;
-    // Заглушка: здесь будет создание холста и вызовы ЦДА, Брезенхема и т.д.
+
+    // и растеризация (4 алгоритма в 4 квадрантах)
 
     std::cout << "[Шаг 4] Сохранение итогового растра в PBM файл: " << pbm_filename << "..." << std::endl;
-    // Заглушка: сохранение матрицы пикселей в формат PBM (P1)
+    save_canvas_to_pbm(pbm_filename, canvas);
 
     std::cout << "\nПрограмма успешно завершена!" << std::endl;
     return 0;
