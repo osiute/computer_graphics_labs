@@ -13,6 +13,7 @@ add_executable(pentagram_app
     canvas.cpp
     builtin_draw.cpp
     dda_draw.cpp
+    bresenham_draw.cpp
 )
 
 target_link_libraries(pentagram_app PRIVATE Threads::Threads)

@@ -6,13 +6,13 @@
 // (мы создадим их чуть позже)
 #include "geometry.h"
 #include "dda_draw.h"
-#include "bresenham.h"
+#include "bresenham_draw.h"
 #include "svg_handler.h"
 #include "canvas.h"
 #include "builtin_draw.h"
 
-const int PBM_WIDTH = 600;
-const int PBM_HEIGHT = 600;
+const int PBM_WIDTH = 1000;
+const int PBM_HEIGHT = 1000;
 
 void generate_svg_and_save_segments(const std::string& filename, double radius, double initial_angle) {
     int width = PBM_WIDTH / 2;
@@ -63,8 +63,9 @@ int main() {
     std::cout << "[Шаг 3] Растеризация (4 пентаграммы 4 разными алгоритмами)..." << std::endl;
     int x_offset = 0, y_offset = 0;
     dda_draw_segments(canvas, svg_filename, x_offset, y_offset);
+
     x_offset = cx;
-    
+    bresenham_draw_segments(canvas, svg_filename, x_offset, y_offset);
 
     x_offset = 0;
     y_offset = cy;
