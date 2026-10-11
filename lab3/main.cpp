@@ -5,7 +5,7 @@
 // Пока что подключаем наши будущие заголовочные файлы
 // (мы создадим их чуть позже)
 #include "geometry.h"
-#include "dda.h"
+#include "dda_draw.h"
 #include "bresenham.h"
 #include "svg_handler.h"
 #include "canvas.h"
@@ -62,6 +62,13 @@ int main() {
 
     std::cout << "[Шаг 3] Растеризация (4 пентаграммы 4 разными алгоритмами)..." << std::endl;
     int x_offset = 0, y_offset = 0;
+    dda_draw_segments(canvas, svg_filename, x_offset, y_offset);
+    x_offset = cx;
+    
+
+    x_offset = 0;
+    y_offset = cy;
+
 
     x_offset = cx;
     y_offset = cy;

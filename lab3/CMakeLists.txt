@@ -12,6 +12,7 @@ add_executable(pentagram_app
     svg_handler.cpp
     canvas.cpp
     builtin_draw.cpp
+    dda_draw.cpp
 )
 
 target_link_libraries(pentagram_app PRIVATE Threads::Threads)
