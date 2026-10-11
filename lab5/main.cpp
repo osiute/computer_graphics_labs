@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
-#include "image.h"
-#include "netpbm.h"
+#include "../common_utils/image.h"
+#include "../common_utils/netpbm.h"
 #include "filters.h"
 
 int main() {

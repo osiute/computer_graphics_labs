@@ -1,5 +1,5 @@
 #pragma once
-#include "image.h"
+#include "../common_utils/image.h"
 
 // Попиксельное преобразование по варианту (насыщенность +30% при яркости < 50%)
 void apply_variant_filter(Image& img);

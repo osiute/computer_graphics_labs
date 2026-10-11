@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Перечисляем все модули нашего проекта
 add_executable(pixel_app
     main.cpp
-    image.cpp
-    netpbm.cpp
+    ../common_utils/image.cpp
+    ../common_utils/netpbm.cpp
     filters.cpp
 )
