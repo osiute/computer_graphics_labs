@@ -9,3 +9,5 @@ double bernstein(int i, int n, double t);
 // control_points - сетка контрольных точек размера (n+1) x (m+1)
 // resolution_u, resolution_v - параметры разбиения (детализация сетки)
 Mesh generate_bezier_surface(const std::vector<std::vector<Point3D>>& control_points, int resolution_u, int resolution_v);
+
+Mesh subdivide_doo_sabin(const Mesh& input_mesh, int iterations);

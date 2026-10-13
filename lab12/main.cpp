@@ -75,23 +75,34 @@ int main() {
         draw_mesh(img, control_mesh, 450.0, Pixel{100, 150, 255}, Pixel{220, 20, 20});
 
     } else if (choice == 2) {
-        std::cout << "\n[Заглушка] Выбрано подразделение Ду-Сабина..." << std::endl;
-        // Здесь в будущем вызовем алгоритм Ду-Сабина
+        int iterations = 2;
+        std::cout << "Введите количество итераций разбиения (рекомендуется 2 или 3): ";
+        std::cin >> iterations;
 
-        Mesh test_mesh;
-        // Тестовый куб
-        double s = 80.0;
-        test_mesh.vertices = {
+        // Создаем базовый куб (исходный контрольный полигон)
+        double s = 100.0;
+        Mesh cube_mesh;
+        cube_mesh.vertices = {
             {-s, -s, -s}, {s, -s, -s}, {s, s, -s}, {-s, s, -s},
             {-s, -s,  s}, {s, -s,  s}, {s, s,  s}, {-s, s,  s}
         };
-        test_mesh.faces = {
-            {{0, 3, 2, 1}}, {{4, 5, 6, 7}},
-            {{0, 1, 5, 4}}, {{2, 3, 7, 6}},
-            {{0, 4, 7, 3}}, {{1, 2, 6, 5}}
+        cube_mesh.faces = {
+            {{0, 3, 2, 1}}, // Нижняя
+            {{4, 5, 6, 7}}, // Верхняя
+            {{0, 1, 5, 4}}, // Передняя
+            {{2, 3, 7, 6}}, // Задняя
+            {{0, 4, 7, 3}}, // Левая
+            {{1, 2, 6, 5}}  // Правая
         };
 
-        draw_mesh(img, test_mesh, 350.0, Pixel{0, 130, 0}, Pixel{200, 30, 30});
+        // Выполняем алгоритм Ду-Сабина
+        Mesh subdivided_mesh = subdivide_doo_sabin(cube_mesh, iterations);
+
+        // 1. Рисуем сглаженную внутреннюю модель (зеленая сетка)
+        draw_mesh(img, subdivided_mesh, 480.0, Pixel{0, 130, 0}, Pixel{200, 30, 30});
+
+        // 2. Рисуем исходный контрольный полигон (красный каркас куба, пункт 6 методички)
+        draw_mesh(img, cube_mesh, 480.0, Pixel{200, 50, 50}, Pixel{220, 20, 20});
     } else {
         std::cout << "Неверный выбор! Программа завершена." << std::endl;
         return 1;
