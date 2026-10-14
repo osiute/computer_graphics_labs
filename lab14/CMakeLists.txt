@@ -14,4 +14,5 @@ add_executable(lab14_app
     ../common_utils/image.cpp
     ../common_utils/netpbm.cpp
     ../common_utils/geometry.cpp
+    ../common_utils/obj_io.cpp
 )

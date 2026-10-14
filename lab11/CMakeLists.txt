@@ -11,4 +11,5 @@ add_executable(lab11_app
     platonic.cpp
     ../common_utils/image.cpp
     ../common_utils/netpbm.cpp
+    ../common_utils/obj_io.cpp
 )

@@ -69,3 +69,17 @@ void draw_mesh(Image& img, const Mesh& mesh, double focal_distance, const Pixel&
         }
     }
 }
+
+void draw_point(Image& img, int x, int y, int radius, const Pixel& color) {
+    for (int dy = -radius; dy <= radius; ++dy) {
+        for (int dx = -radius; dx <= radius; ++dx) {
+            if (dx * dx + dy * dy <= radius * radius) {
+                int nx = x + dx;
+                int ny = y + dy;
+                if (nx >= 0 && nx < img.width && ny >= 0 && ny < img.height) {
+                    img.pixels[ny * img.width + nx] = color;
+                }
+            }
+        }
+    }
+}

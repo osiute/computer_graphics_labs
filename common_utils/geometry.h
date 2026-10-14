@@ -29,3 +29,5 @@ void draw_line(Image& img, int x0, int y0, int x1, int y1, const Pixel& color);
 
 // Функция отрисовки всей полигональной сетки на изображении
 void draw_mesh(Image& img, const Mesh& mesh, double focal_distance, const Pixel& edge_color, const Pixel& vertex_color);
+
+void draw_point(Image& img, int x, int y, int radius, const Pixel& color);

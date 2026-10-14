@@ -4,6 +4,7 @@
 #include "image.h"
 #include "netpbm.h"
 #include "platonic.h"
+#include "obj_io.h"
 
 // Алгоритм Брезенхема для рисования линий каркаса на холсте
 void draw_line(Image& img, int x0, int y0, int x1, int y1, const Pixel& color) {
@@ -91,6 +92,29 @@ int main() {
     // Сохранение результата в PPM файл с помощью нашей утилиты
     write_ppm_p3(filename, img);
     std::cout << "Готово! Каркасное изображение успешно сохранено в файл: " << filename << std::endl;
+
+    std::string obj_name = filename;
+    auto dot = obj_name.find_last_of('.');
+    if (dot != std::string::npos) {
+        obj_name = obj_name.substr(0, dot);
+    }
+    obj_name += ".obj";
+
+    std::vector<ObjVert> verts;
+    verts.reserve(model.vertices.size());
+    for (const auto& p : model.vertices) {
+        verts.push_back({p.x, p.y, p.z});
+    }
+    std::vector<ObjFace> faces;
+    for (const auto& f : model.faces) {
+        faces.push_back({f});
+    }
+    std::string object_tag = (choice == 2) ? "Dodecahedron" : "Cube";
+    if (write_wavefront_obj(obj_name, object_tag, verts, faces)) {
+        std::cout << "OBJ сохранён: " << obj_name << std::endl;
+    } else {
+        std::cerr << "Не удалось записать OBJ: " << obj_name << std::endl;
+    }
 
     return 0;
 }

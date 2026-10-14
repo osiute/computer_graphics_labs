@@ -13,6 +13,7 @@ struct Edge {
 struct WireframeModel {
     std::vector<Point3D> vertices;
     std::vector<Edge> edges;
+    std::vector<std::vector<int>> faces;
 };
 
 // Генераторы тел для Варианта 2 (Гексаэдр и Додекаэдр)

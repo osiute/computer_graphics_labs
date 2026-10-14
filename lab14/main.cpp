@@ -11,6 +11,7 @@
 #include "image.h"
 #include "netpbm.h"
 #include "lab14.h"
+#include "obj_io.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../libraries/stb_image_write.h"
@@ -84,6 +85,21 @@ static void render_solid(const Mesh& mesh, const std::string& name,
     draw_axes_grid_solid(img, view);
     draw_mesh_roberts(img, mesh, back, view);
     save_both(name, img);
+
+    {
+        std::vector<ObjVert> verts;
+        for (const auto& p : mesh.vertices) {
+            verts.push_back({p.x, p.y, p.z});
+        }
+        std::vector<ObjFace> faces;
+        for (const auto& f : mesh.faces) {
+            faces.push_back({f.vertex_indices});
+        }
+        std::string obj_path = name + ".obj";
+        if (write_wavefront_obj(obj_path, name, verts, faces)) {
+            std::cout << "OBJ сохранён: " << obj_path << std::endl;
+        }
+    }
 
     std::ofstream report(name + "_roberts.txt");
     auto dump = [&](const std::string& s) {
