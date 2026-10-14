@@ -2,6 +2,10 @@
 #include <vector>
 #include "image.h"
 
+struct Point2D {
+    double x, y;
+};
+
 struct Point3D {
     double x, y, z;
 };
