@@ -1,0 +1,12 @@
+# Diffuse material colors. Each Kd component is in [0, 1].
+newmtl Walls
+Kd 0.86 0.67 0.36
+
+newmtl Sides
+Kd 0.25 0.48 0.72
+
+newmtl Roof
+Kd 0.72 0.24 0.16
+
+newmtl Foundation
+Kd 0.40 0.43 0.48
