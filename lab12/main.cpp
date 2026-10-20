@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <iomanip>
+#include <stdexcept>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -156,59 +157,123 @@ static void run_chaikin(const std::string& filename, std::vector<Point2D> pts, i
     save_raster(filename, img);
 }
 
-static void run_bezier_surface(const std::string& filename, int resolution) {
-    if (resolution < 2) {
-        resolution = 2;
-    }
-    std::vector<std::vector<Point3D>> control_grid = {
-        {{-140, -120, -50}, {-60, -120, -20}, {20, -120, 20}, {100, -120, 50}},
-        {{-140, -40, -20}, {-60, -40, 50}, {20, -40, 90}, {100, -40, 120}},
-        {{-140, 40, -20}, {-60, 40, 50}, {20, 40, 90}, {100, 40, 120}},
-        {{-140, 120, -50}, {-60, 120, -20}, {20, 120, 20}, {100, 120, 50}}
+static std::vector<std::vector<Point3D>> default_bezier_grid() {
+    return {
+        {{-140,-120,-50},{-60,-120,-20},{20,-120,20},{100,-120,50}},
+        {{-140,-40,-20},{-60,-40,50},{20,-40,90},{100,-40,120}},
+        {{-140,40,-20},{-60,40,50},{20,40,90},{100,40,120}},
+        {{-140,120,-50},{-60,120,-20},{20,120,20},{100,120,50}}
     };
-    Mesh surface = generate_bezier_surface(control_grid, resolution, resolution);
-    Mesh control;
-    for (const auto& row : control_grid) {
-        for (const auto& pt : row) {
-            control.vertices.push_back(pt);
-        }
-    }
-    for (int i = 0; i < 4; ++i) {
-        control.faces.push_back({{i * 4, i * 4 + 1, i * 4 + 2, i * 4 + 3}});
-        control.faces.push_back({{i, i + 4, i + 8, i + 12}});
-    }
+}
 
+static std::vector<std::vector<Point3D>> input_bezier_grid() {
+    int rows;
+    std::cout << "Строк контрольной сетки (0 = пример 4x4): ";
+    std::cin >> rows;
+    if (rows == 0) return default_bezier_grid();
+    int cols;
+    std::cout << "Столбцов: ";
+    std::cin >> cols;
+    if (rows < 2 || cols < 2 || rows > 30 || cols > 30)
+        throw std::invalid_argument("Размеры сетки: от 2 до 30 по каждой оси");
+    std::vector<std::vector<Point3D>> grid(rows, std::vector<Point3D>(cols));
+    for (int r = 0; r < rows; ++r)
+        for (int c = 0; c < cols; ++c) {
+            std::cout << "P[" << r << "][" << c << "] (x y z): ";
+            if (!(std::cin >> grid[r][c].x >> grid[r][c].y >> grid[r][c].z))
+                throw std::runtime_error("Некорректные координаты");
+        }
+    return grid;
+}
+
+static void draw_bezier_controls(Image& img, const std::vector<std::vector<Point3D>>& grid) {
+    int rows = static_cast<int>(grid.size()), cols = static_cast<int>(grid[0].size());
+    auto line3 = [&](const Point3D& a, const Point3D& b) {
+        auto x = apply_perspective(a, 450, img.width / 2.0, img.height / 2.0);
+        auto y = apply_perspective(b, 450, img.width / 2.0, img.height / 2.0);
+        draw_line(img, static_cast<int>(x.x), static_cast<int>(x.y),
+                  static_cast<int>(y.x), static_cast<int>(y.y), Pixel{80,140,240});
+    };
+    for (int r = 0; r < rows; ++r)
+        for (int c = 0; c < cols; ++c) {
+            if (r + 1 < rows) line3(grid[r][c], grid[r+1][c]);
+            if (c + 1 < cols) line3(grid[r][c], grid[r][c+1]);
+        }
+    for (const auto& row : grid)
+        for (const auto& p : row) {
+            auto q = apply_perspective(p, 450, img.width / 2.0, img.height / 2.0);
+            draw_point(img, static_cast<int>(q.x), static_cast<int>(q.y), 4, Pixel{220,30,30});
+        }
+}
+
+static void run_bezier_surface(const std::string& filename, int resolution,
+                               const std::vector<std::vector<Point3D>>& grid) {
+    if (resolution < 2 || resolution > 200)
+        throw std::invalid_argument("Разбиение поверхности: от 2 до 200");
+    Mesh surface = generate_bezier_surface(grid, resolution, resolution);
     Image img = make_canvas(800, 600);
-    draw_mesh(img, surface, 450.0, Pixel{0, 130, 0}, Pixel{200, 30, 30});
-    draw_mesh(img, control, 450.0, Pixel{100, 150, 255}, Pixel{220, 20, 20});
+    draw_mesh(img, surface, 450.0, Pixel{0, 130, 0}, Pixel{30, 130, 30});
+    draw_bezier_controls(img, grid);
     save_raster(filename, img);
     save_mesh_obj(filename, "BezierSurface", surface);
 }
 
-static void run_doo_sabin(const std::string& filename, int iterations) {
-    if (iterations < 1) {
-        iterations = 1;
-    }
-    double s = 100.0;
+static Mesh default_cube() {
+    double s = 100;
     Mesh cube;
-    cube.vertices = {
-        {-s, -s, -s}, {s, -s, -s}, {s, s, -s}, {-s, s, -s},
-        {-s, -s, s}, {s, -s, s}, {s, s, s}, {-s, s, s}
-    };
-    cube.faces = {
-        {{0, 3, 2, 1}}, {{4, 5, 6, 7}}, {{0, 1, 5, 4}},
-        {{2, 3, 7, 6}}, {{0, 4, 7, 3}}, {{1, 2, 6, 5}}
-    };
-    Mesh subdivided = subdivide_doo_sabin(cube, iterations);
-    std::cout << "Ду-Сабин: исходных вершин " << cube.vertices.size()
-              << ", после " << iterations << " итераций: " << subdivided.vertices.size()
-              << ", граней: " << subdivided.faces.size() << std::endl;
+    cube.vertices = {{-s,-s,-s},{s,-s,-s},{s,s,-s},{-s,s,-s},
+                     {-s,-s,s},{s,-s,s},{s,s,s},{-s,s,s}};
+    cube.faces = {{{0,3,2,1}},{{4,5,6,7}},{{0,1,5,4}},
+                  {{2,3,7,6}},{{0,4,7,3}},{{1,2,6,5}}};
+    return cube;
+}
 
-    Image img = make_canvas(800, 600);
-    draw_mesh(img, subdivided, 480.0, Pixel{0, 130, 0}, Pixel{200, 30, 30});
-    draw_mesh(img, cube, 480.0, Pixel{200, 50, 50}, Pixel{220, 20, 20});
-    save_raster(filename, img);
-    save_mesh_obj(filename, "DooSabin", subdivided);
+static Mesh input_doo_sabin_mesh() {
+    int n;
+    std::cout << "Число исходных вершин (0 = куб): ";
+    std::cin >> n;
+    if (n == 0) return default_cube();
+    if (n < 4 || n > 10000) throw std::invalid_argument("Количество вершин: 4..10000");
+    Mesh mesh;
+    mesh.vertices.resize(n);
+    for (int i = 0; i < n; ++i) {
+        std::cout << "Вершина " << i << " (x y z): ";
+        if (!(std::cin >> mesh.vertices[i].x >> mesh.vertices[i].y >> mesh.vertices[i].z))
+            throw std::runtime_error("Некорректные координаты");
+    }
+    int face_count;
+    std::cout << "Число граней: "; std::cin >> face_count;
+    if (face_count < 4 || face_count > 20000) throw std::invalid_argument("Количество граней: 4..20000");
+    for (int f = 0; f < face_count; ++f) {
+        int k;
+        std::cout << "Грань " << f << ": число вершин и затем индексы (с 0, обход согласован): ";
+        std::cin >> k;
+        if (k < 3 || k > n) throw std::invalid_argument("Некорректный размер грани");
+        Face face;
+        for (int j = 0; j < k; ++j) {
+            int id; std::cin >> id;
+            if (id < 0 || id >= n) throw std::invalid_argument("Некорректный индекс вершины");
+            face.vertex_indices.push_back(id);
+        }
+        mesh.faces.push_back(face);
+    }
+    return mesh;
+}
+
+static void run_doo_sabin(const std::string& filename, int iterations, const Mesh& initial) {
+    if (iterations < 1 || iterations > 5)
+        throw std::invalid_argument("Число итераций Ду-Сабина: от 1 до 5");
+    for (int stage = 1; stage <= iterations; ++stage) {
+        Mesh subdivided = subdivide_doo_sabin(initial, stage);
+        std::string output = stem_of(filename) + "_step" + std::to_string(stage) + ".ppm";
+        std::cout << "Шаг " << stage << ": " << subdivided.vertices.size()
+                  << " вершин, " << subdivided.faces.size() << " граней\n";
+        Image img = make_canvas(800, 600);
+        draw_mesh(img, subdivided, 480.0, Pixel{0,130,0}, Pixel{230,150,30});
+        draw_mesh(img, initial, 480.0, Pixel{80,140,240}, Pixel{220,30,30});
+        save_raster(output, img);
+        save_mesh_obj(output, "DooSabin", subdivided);
+    }
 }
 
 int main() {
@@ -217,59 +282,38 @@ int main() {
     SetConsoleCP(CP_UTF8);
 #endif
 
-    std::cout << "=== Лаба 12, вариант 2 (m2664) ===" << std::endl;
-    std::cout << "П.6 обязательно. Ещё: кубическая Безье, Чайкин, поверхность Безье, Ду-Сабин.\n"
-              << "Серый — исходный полигон, синие точки — его вершины,\n"
-              << "красный/зелёный — уточнённая кривая или поверхность.\n" << std::endl;
-    std::cout << "Режим:\n"
-              << "  2 - кубическая Безье\n"
-              << "  3 - Чайкин\n"
-              << "  4 - поверхность Безье\n"
-              << "  5 - поверхность Ду-Сабина\n"
-              << "  0 - все четыре заготовки\n"
-              << "Выбор: ";
+    std::cout << "=== Лабораторная работа #12: Поверхности (Безье / Ду-Сабина) ===" << std::endl;
     int mode = 0;
-    std::cin >> mode;
+    while (true) {
+        std::cout << "Режим:\n"
+                  << "  1 - поверхность Безье\n"
+                  << "  2 - поверхность Ду-Сабина\n"
+                  << "Выбор: ";
+        std::cin >> mode;
+    
+        if (mode == 1) {
+            int res = 12;
+            std::cout << "Параметр разбиения поверхности (например 12): ";
+            std::cin >> res;
+            std::string fn;
+            std::cout << "Имя PPM: ";
+            std::cin >> fn;
+            run_bezier_surface(fn, res, input_bezier_grid());
+            break;
+        } else if (mode == 2) {
+            int it = 2;
+            std::cout << "Итерации Ду-Сабина (например 2): ";
+            std::cin >> it;
+            std::string fn;
+            std::cout << "Имя PPM: ";
+            std::cin >> fn;
+            run_doo_sabin(fn, it, input_doo_sabin_mesh());
+            break;
+        } 
+        else {
+            std::cout << "Режим не распознан" << std::endl;
+        }
+    }    
 
-    if (mode == 2) {
-        auto pts = read_points2d(4);
-        int steps = 40;
-        std::cout << "Параметр разбиения (число шагов, например 40): ";
-        std::cin >> steps;
-        std::string fn;
-        std::cout << "Имя PPM: ";
-        std::cin >> fn;
-        run_cubic(fn, pts, steps, 0.5);
-    } else if (mode == 3) {
-        auto pts = read_points2d(3);
-        int it = 4;
-        std::cout << "Число итераций Чайкина (например 4): ";
-        std::cin >> it;
-        std::string fn;
-        std::cout << "Имя PPM: ";
-        std::cin >> fn;
-        run_chaikin(fn, pts, it);
-    } else if (mode == 4) {
-        int res = 12;
-        std::cout << "Параметр разбиения поверхности (например 12): ";
-        std::cin >> res;
-        std::string fn;
-        std::cout << "Имя PPM: ";
-        std::cin >> fn;
-        run_bezier_surface(fn, res);
-    } else if (mode == 5) {
-        int it = 2;
-        std::cout << "Итерации Ду-Сабина (например 2): ";
-        std::cin >> it;
-        std::string fn;
-        std::cout << "Имя PPM: ";
-        std::cin >> fn;
-        run_doo_sabin(fn, it);
-    } else {
-        run_cubic("cubic_bezier.ppm", {}, 50, 0.5);
-        run_chaikin("chaikin.ppm", {}, 4);
-        run_bezier_surface("bezier.ppm", 12);
-        run_doo_sabin("doo_sabin.ppm", 2);
-    }
     return 0;
 }

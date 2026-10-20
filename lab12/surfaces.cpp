@@ -1,215 +1,161 @@
 #include "surfaces.h"
+#include <algorithm>
 #include <cmath>
 #include <map>
-#include <set>
+#include <stdexcept>
+#include <utility>
 #include <vector>
 
-// Вспомогательная функция для вычисления факториала
-static long long factorial(int n) {
-    if (n <= 1) return 1;
-    long long res = 1;
-    for (int i = 2; i <= n; ++i) res *= i;
-    return res;
-}
-
-// Биномиальный коэффициент C(n, i) = n! / (i! * (n - i)!)
-static double binomial_coefficient(int n, int i) {
-    if (i < 0 || i > n) return 0.0;
-    return static_cast<double>(factorial(n)) / (factorial(i) * factorial(n - i));
+static double choose(int n, int k) {
+    if (k < 0 || k > n) return 0;
+    k = std::min(k, n - k);
+    double result = 1;
+    for (int j = 1; j <= k; ++j)
+        result *= static_cast<double>(n - k + j) / j;
+    return result;
 }
 
 double bernstein(int i, int n, double t) {
-    return binomial_coefficient(n, i) * std::pow(t, i) * std::pow(1.0 - t, n - i);
+    return choose(n, i) * std::pow(t, i) * std::pow(1 - t, n - i);
 }
 
-Mesh generate_bezier_surface(const std::vector<std::vector<Point3D>>& control_points, int resolution_u, int resolution_v) {
-    Mesh surface_mesh;
-    int n = control_points.size() - 1;
-    if (n < 0) return surface_mesh;
-    int m = control_points[0].size() - 1;
-    if (m < 0) return surface_mesh;
-
-    int grid_w = resolution_u + 1;
-    int grid_h = resolution_v + 1;
-
-    // 1. Вычисляем точки поверхности по параметрам u и v от 0 до 1
-    surface_mesh.vertices.reserve(grid_w * grid_h);
-
-    for (int i = 0; i <= resolution_u; ++i) {
-        double u = static_cast<double>(i) / resolution_u;
-        for (int j = 0; j <= resolution_v; ++j) {
-            double v = static_cast<double>(j) / resolution_v;
-
-            Point3D p{0.0, 0.0, 0.0};
-            for (int r = 0; r <= n; ++r) {
-                double b_r = bernstein(r, n, u);
-                for (int c = 0; c <= m; ++c) {
-                    double b_c = bernstein(c, m, v);
-                    double weight = b_r * b_c;
-                    p.x += control_points[r][c].x * weight;
-                    p.y += control_points[r][c].y * weight;
-                    p.z += control_points[r][c].z * weight;
+Mesh generate_bezier_surface(const std::vector<std::vector<Point3D>>& cp, int ru, int rv) {
+    if (cp.size() < 2 || cp.front().size() < 2 || ru < 1 || rv < 1)
+        throw std::invalid_argument("Bezier: требуется сетка не меньше 2x2 и положительное разбиение");
+    const int rows = static_cast<int>(cp.size());
+    const int cols = static_cast<int>(cp.front().size());
+    for (const auto& row : cp)
+        if (static_cast<int>(row.size()) != cols)
+            throw std::invalid_argument("Bezier: длины строк контрольной сетки не совпадают");
+    Mesh result;
+    result.vertices.reserve(static_cast<size_t>(ru + 1) * (rv + 1));
+    for (int i = 0; i <= ru; ++i) {
+        double u = static_cast<double>(i) / ru;
+        std::vector<double> bu(rows);
+        for (int r = 0; r < rows; ++r) bu[r] = bernstein(r, rows - 1, u);
+        for (int j = 0; j <= rv; ++j) {
+            double v = static_cast<double>(j) / rv;
+            Point3D p{0, 0, 0};
+            for (int r = 0; r < rows; ++r)
+                for (int c = 0; c < cols; ++c) {
+                    double w = bu[r] * bernstein(c, cols - 1, v);
+                    p.x += w * cp[r][c].x;
+                    p.y += w * cp[r][c].y;
+                    p.z += w * cp[r][c].z;
                 }
-            }
-            surface_mesh.vertices.push_back(p);
+            result.vertices.push_back(p);
         }
     }
-
-    // 2. Формируем четырехугольные грани (сетку)
-    for (int i = 0; i < resolution_u; ++i) {
-        for (int j = 0; j < resolution_v; ++j) {
-            int idx00 = i * grid_h + j;
-            int idx10 = (i + 1) * grid_h + j;
-            int idx11 = (i + 1) * grid_h + (j + 1);
-            int idx01 = i * grid_h + (j + 1);
-
-            surface_mesh.faces.push_back({ {idx00, idx10, idx11, idx01} });
+    const int stride = rv + 1;
+    for (int i = 0; i < ru; ++i)
+        for (int j = 0; j < rv; ++j) {
+            int a = i * stride + j, b = (i + 1) * stride + j;
+            result.faces.push_back({{a, b, b + 1, a + 1}});
         }
-    }
-
-    return surface_mesh;
+    return result;
 }
 
+// В ориентированной замкнутой сетке каждому ребру a->b соответствует b->a.
+// Важны и координаты новых точек, и правильный циклический порядок граней.
+static Mesh doo_sabin_step(const Mesh& mesh) {
+    using Edge = std::pair<int, int>;
+    struct HalfEdge { int face, corner; };
+    std::map<Edge, HalfEdge> halfedges;
+    std::vector<std::vector<int>> corners(mesh.faces.size());
+    std::vector<std::vector<std::pair<int, int>>> incident(mesh.vertices.size());
 
-static Mesh single_doo_sabin_iteration(const Mesh& mesh) {
-    Mesh next_mesh;
-    
-    // Для каждой грани исходного меша вычисляем новые точки (по одной на каждую вершину грани)
-    // Структура хранения новых вершин: маппинг пары (face_index, vertex_local_index) -> новый индекс в next_mesh
-    std::map<std::pair<int, int>, int> face_vertex_map;
-
-    int new_v_count = 0;
-
-    for (size_t f_idx = 0; f_idx < mesh.faces.size(); ++f_idx) {
-        const auto& face = mesh.faces[f_idx];
-        int k = face.vertex_indices.size();
-
-        // 1. Находим центр масс (центроид) текущей грани
-        Point3D centroid{0, 0, 0};
-        for (int idx : face.vertex_indices) {
-            centroid.x += mesh.vertices[idx].x;
-            centroid.y += mesh.vertices[idx].y;
-            centroid.z += mesh.vertices[idx].z;
+    for (int f = 0; f < static_cast<int>(mesh.faces.size()); ++f) {
+        const auto& ids = mesh.faces[f].vertex_indices;
+        if (ids.size() < 3) throw std::invalid_argument("Doo-Sabin: грань имеет менее 3 вершин");
+        corners[f].resize(ids.size());
+        for (int i = 0; i < static_cast<int>(ids.size()); ++i) {
+            int a = ids[i], b = ids[(i + 1) % ids.size()];
+            if (a < 0 || b < 0 || a >= static_cast<int>(mesh.vertices.size()) || b >= static_cast<int>(mesh.vertices.size()) || a == b)
+                throw std::invalid_argument("Doo-Sabin: некорректный индекс вершины или вырожденное ребро");
+            if (!halfedges.emplace(Edge{a, b}, HalfEdge{f, i}).second)
+                throw std::invalid_argument("Doo-Sabin: повторное ориентированное ребро; проверьте обход граней");
+            incident[a].push_back({f, i});
         }
-        centroid.x /= k;
-        centroid.y /= k;
-        centroid.z /= k;
+    }
+    for (const auto& item : halfedges)
+        if (!halfedges.count({item.first.second, item.first.first}))
+            throw std::invalid_argument("Doo-Sabin: требуется замкнутая согласованно ориентированная сетка");
 
-        // 2. Для каждой вершины грани создаем новую сглаженную точку по правилу Ду-Сабина
-        for (int i = 0; i < k; ++i) {
-            int curr_v_idx = face.vertex_indices[i];
-            const auto& v = mesh.vertices[curr_v_idx];
-
-            // Соседние вершины на этой же грани
-            int prev_v_idx = face.vertex_indices[(i - 1 + k) % k];
-            int next_v_idx = face.vertex_indices[(i + 1) % k];
-            const auto& v_prev = mesh.vertices[prev_v_idx];
-            const auto& v_next = mesh.vertices[next_v_idx];
-
-            Point3D new_pt;
-            if (k == 4) {
-                // Точные коэффициенты для четырехугольных граней (куб)
-                const auto& v_opp = mesh.vertices[face.vertex_indices[(i + 2) % k]];
-                new_pt.x = (9.0 * v.x + 3.0 * v_prev.x + 3.0 * v_next.x + 1.0 * v_opp.x) / 16.0;
-                new_pt.y = (9.0 * v.y + 3.0 * v_prev.y + 3.0 * v_next.y + 1.0 * v_opp.y) / 16.0;
-                new_pt.z = (9.0 * v.z + 3.0 * v_prev.z + 3.0 * v_next.z + 1.0 * v_opp.z) / 16.0;
-            } else {
-                // Общий случай для n-угольников
-                new_pt.x = 0.25 * v.x + 0.5 * centroid.x + 0.125 * (v_prev.x + v_next.x);
-                new_pt.y = 0.25 * v.y + 0.5 * centroid.y + 0.125 * (v_prev.y + v_next.y);
-                new_pt.z = 0.25 * v.z + 0.5 * centroid.z + 0.125 * (v_prev.z + v_next.z);
-            }
-
-            face_vertex_map[{f_idx, i}] = new_v_count++;
-            next_mesh.vertices.push_back(new_pt);
+    Mesh next;
+    for (int f = 0; f < static_cast<int>(mesh.faces.size()); ++f) {
+        const auto& ids = mesh.faces[f].vertex_indices;
+        const int n = static_cast<int>(ids.size());
+        Point3D center{0, 0, 0};
+        for (int id : ids) {
+            center.x += mesh.vertices[id].x;
+            center.y += mesh.vertices[id].y;
+            center.z += mesh.vertices[id].z;
+        }
+        center.x /= n; center.y /= n; center.z /= n;
+        for (int i = 0; i < n; ++i) {
+            const Point3D& p = mesh.vertices[ids[i]];
+            const Point3D& prev = mesh.vertices[ids[(i + n - 1) % n]];
+            const Point3D& after = mesh.vertices[ids[(i + 1) % n]];
+            // Среднее вершины, двух середин смежных рёбер и центра грани.
+            Point3D q{0.5 * p.x + 0.125 * (prev.x + after.x) + 0.25 * center.x,
+                      0.5 * p.y + 0.125 * (prev.y + after.y) + 0.25 * center.y,
+                      0.5 * p.z + 0.125 * (prev.z + after.z) + 0.25 * center.z};
+            corners[f][i] = static_cast<int>(next.vertices.size());
+            next.vertices.push_back(q);
         }
     }
 
-    // 3. Формируем новые типы граней (F-грани, E-грани, V-грани):
-    // А) Новые грани внутри старых граней (F-faces)
-    for (size_t f_idx = 0; f_idx < mesh.faces.size(); ++f_idx) {
-        int k = mesh.faces[f_idx].vertex_indices.size();
-        Face new_face;
-        for (int i = 0; i < k; ++i) {
-            new_face.vertex_indices.push_back(face_vertex_map[{f_idx, i}]);
-        }
-        next_mesh.faces.push_back(new_face);
+    // F-грани: по одной внутри каждой исходной грани.
+    for (const auto& row : corners) next.faces.push_back({row});
+
+    // E-грани: четыре точки около каждого старого ребра, в правильном порядке.
+    for (const auto& item : halfedges) {
+        int a = item.first.first, b = item.first.second;
+        if (a > b) continue; // одно неориентированное ребро один раз
+        const auto& h = item.second;
+        const auto& reverse = halfedges.at({b, a});
+        int nf = static_cast<int>(mesh.faces[h.face].vertex_indices.size());
+        int ng = static_cast<int>(mesh.faces[reverse.face].vertex_indices.size());
+        next.faces.push_back({{
+            corners[h.face][(h.corner + 1) % nf],
+            corners[h.face][h.corner],
+            corners[reverse.face][(reverse.corner + 1) % ng],
+            corners[reverse.face][reverse.corner]
+        }});
     }
 
-    // Б) Грани вокруг ребер (E-faces) и вершин (V-faces)
-    // Собираем информацию о том, в каких гранях участвует каждая вершина исходного меша
-    std::map<int, std::vector<std::pair<int, int>>> vertex_to_face_corners;
-    for (size_t f_idx = 0; f_idx < mesh.faces.size(); ++f_idx) {
-        const auto& face = mesh.faces[f_idx];
-        for (int i = 0; i < face.vertex_indices.size(); ++i) {
-            int v_idx = face.vertex_indices[i];
-            vertex_to_face_corners[v_idx].push_back({f_idx, i});
+    // V-грани: обходим инцидентные грани вокруг старой вершины,
+    // переходя через общее ребро, а не в порядке хранения в std::map.
+    for (int v = 0; v < static_cast<int>(incident.size()); ++v) {
+        if (incident[v].empty()) continue;
+        const auto start = incident[v].front();
+        auto current = start;
+        std::vector<int> polygon;
+        for (size_t step = 0; step < incident[v].size(); ++step) {
+            int f = current.first, i = current.second;
+            polygon.push_back(corners[f][i]);
+            const auto& face = mesh.faces[f].vertex_indices;
+            int next_v = face[(i + 1) % face.size()];
+            auto opp = halfedges.find({next_v, v});
+            if (opp == halfedges.end()) throw std::invalid_argument("Doo-Sabin: разрыв сетки");
+            int g = opp->second.face;
+            int j = (opp->second.corner + 1) % mesh.faces[g].vertex_indices.size();
+            current = {g, j};
+            if (current == start) break;
+        }
+        if (polygon.size() != incident[v].size() || current != start)
+            throw std::invalid_argument("Doo-Sabin: нарушен циклический обход вокруг вершины");
+        if (polygon.size() >= 3) {
+            std::reverse(polygon.begin(), polygon.end());
+            next.faces.push_back({polygon});
         }
     }
-
-    // Для каждой исходной вершины создаем V-грань (вокруг вершины)
-    for (const auto& pair : vertex_to_face_corners) {
-        const auto& corners = pair.second;
-        Face v_face;
-        for (const auto& corner : corners) {
-            v_face.vertex_indices.push_back(face_vertex_map[corner]);
-        }
-        next_mesh.faces.push_back(v_face);
-    }
-
-    // Для каждого исходного ребра создаем E-грань (между соседними гранями, делящими ребро)
-    std::set<std::pair<int, int>> processed_edges;
-    for (size_t f_idx = 0; f_idx < mesh.faces.size(); ++f_idx) {
-        const auto& face = mesh.faces[f_idx];
-        int k = face.vertex_indices.size();
-        for (int i = 0; i < k; ++i) {
-            int v1 = face.vertex_indices[i];
-            int v2 = face.vertex_indices[(i + 1) % k];
-            
-            std::pair<int, int> edge = {std::min(v1, v2), std::max(v1, v2)};
-            if (processed_edges.count(edge)) continue;
-            processed_edges.insert(edge);
-
-            // Ищем две грани, содержащие это ребро
-            std::vector<std::pair<int, int>> sharing_corners;
-            for (const auto& corner : vertex_to_face_corners[v1]) {
-                int fi = corner.first;
-                int vi = corner.second;
-                int nxt = mesh.faces[fi].vertex_indices[(vi + 1) % mesh.faces[fi].vertex_indices.size()];
-                int prv = mesh.faces[fi].vertex_indices[(vi - 1 + mesh.faces[fi].vertex_indices.size()) % mesh.faces[fi].vertex_indices.size()];
-                if (nxt == v2 || prv == v2) {
-                    sharing_corners.push_back(corner);
-                }
-            }
-
-            if (sharing_corners.size() == 2) {
-                // Соединяем 4 точки в E-грань
-                // Находим правильный порядок обхода
-                int f1 = sharing_corners[0].first;
-                int idx1 = sharing_corners[0].second;
-                int f2 = sharing_corners[1].first;
-                int idx2 = sharing_corners[1].second;
-
-                Face e_face;
-                e_face.vertex_indices = {
-                    face_vertex_map[{f1, idx1}],
-                    face_vertex_map[{f1, (idx1 + 1) % mesh.faces[f1].vertex_indices.size()}],
-                    face_vertex_map[{f2, idx2}],
-                    face_vertex_map[{f2, (idx2 + 1) % mesh.faces[f2].vertex_indices.size()}]
-                };
-                // Чтобы грани не пересекались, упорядочим корректно
-                next_mesh.faces.push_back(e_face);
-            }
-        }
-    }
-
-    return next_mesh;
+    return next;
 }
 
 Mesh subdivide_doo_sabin(const Mesh& input_mesh, int iterations) {
+    if (iterations < 0) throw std::invalid_argument("Число итераций не может быть отрицательным");
     Mesh current = input_mesh;
-    for (int i = 0; i < iterations; ++i) {
-        current = single_doo_sabin_iteration(current);
-    }
+    for (int i = 0; i < iterations; ++i) current = doo_sabin_step(current);
     return current;
 }
