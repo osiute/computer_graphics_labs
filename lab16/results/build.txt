@@ -1,0 +1,4 @@
+$ cmake --build lab16/build --parallel 4
+[ 60%] Built target lab16_core
+[ 80%] Built target lab16_app
+[100%] Built target lab16_tests

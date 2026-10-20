@@ -1,0 +1,176 @@
+=== standard house ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/home/giefther/computer_graphics_labs/lab16/assets/house.obj', '/home/giefther/computer_graphics_labs/lab16/results/house.png', '35', '25', '1000', '800']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Загружено: 10 вершин, 7 граней, 4 материалов.
+  Foundation: RGB(102, 110, 122)
+  Roof: RGB(184, 61, 41)
+  Sides: RGB(64, 122, 184)
+  Walls: RGB(219, 171, 92)
+Ракурс: азимут 35°, угол места 25°.
+Отрисовано 16 треугольников, 199614 видимых пикселей.
+PNG сохранён: /home/giefther/computer_graphics_labs/lab16/results/house.png (1000 × 800)
+exit: 0
+
+=== different camera ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/home/giefther/computer_graphics_labs/lab16/assets/house.obj', '/home/giefther/computer_graphics_labs/lab16/results/house_other.png', '-35', '15']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Загружено: 10 вершин, 7 граней, 4 материалов.
+  Foundation: RGB(102, 110, 122)
+  Roof: RGB(184, 61, 41)
+  Sides: RGB(64, 122, 184)
+  Walls: RGB(219, 171, 92)
+Ракурс: азимут -35°, угол места 15°.
+Отрисовано 16 треугольников, 199371 видимых пикселей.
+PNG сохранён: /home/giefther/computer_graphics_labs/lab16/results/house_other.png (1000 × 800)
+exit: 0
+
+=== changed Roof Kd, new process ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/tmp/lab16-cli-w9flfhc3/changed material/house.obj', '/home/giefther/computer_graphics_labs/lab16/results/house_roof_green.png', '35', '25', '1000', '800']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Загружено: 10 вершин, 7 граней, 4 материалов.
+  Foundation: RGB(102, 110, 122)
+  Roof: RGB(38, 191, 64)
+  Sides: RGB(64, 122, 184)
+  Walls: RGB(219, 171, 92)
+Ракурс: азимут 35°, угол места 25°.
+Отрисовано 16 треугольников, 199614 видимых пикселей.
+PNG сохранён: /home/giefther/computer_graphics_labs/lab16/results/house_roof_green.png (1000 × 800)
+exit: 0
+
+=== missing MTL fallback ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/tmp/lab16-cli-w9flfhc3/house.obj', '/home/giefther/computer_graphics_labs/lab16/results/house_without_mtl.png']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Предупреждение: Не удалось открыть MTL '/tmp/lab16-cli-w9flfhc3/house.mtl'. Для отсутствующих материалов используется стандартный цвет.
+Предупреждение: Материал 'Foundation' не найден в MTL; используется стандартный цвет.
+Предупреждение: Материал 'Roof' не найден в MTL; используется стандартный цвет.
+Предупреждение: Материал 'Sides' не найден в MTL; используется стандартный цвет.
+Предупреждение: Материал 'Walls' не найден в MTL; используется стандартный цвет.
+Загружено: 10 вершин, 7 граней, 0 материалов.
+Ракурс: азимут 35°, угол места 25°.
+Отрисовано 16 треугольников, 199614 видимых пикселей.
+PNG сохранён: /home/giefther/computer_graphics_labs/lab16/results/house_without_mtl.png (1000 × 800)
+exit: 0
+
+=== missing OBJ ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/tmp/lab16-cli-w9flfhc3/absent.obj', '/home/giefther/computer_graphics_labs/lab16/results/absent.png']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Ошибка: Не удалось открыть OBJ '/tmp/lab16-cli-w9flfhc3/absent.obj'
+exit: 1
+
+=== zero OBJ index ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/tmp/lab16-cli-w9flfhc3/bad.obj', '/home/giefther/computer_graphics_labs/lab16/results/bad.png']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Ошибка: /tmp/lab16-cli-w9flfhc3/bad.obj:4: f: некорректный индекс v '0'
+exit: 1
+
+=== out-of-range OBJ index ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/tmp/lab16-cli-w9flfhc3/bad.obj', '/home/giefther/computer_graphics_labs/lab16/results/bad.png']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Ошибка: /tmp/lab16-cli-w9flfhc3/bad.obj:4: f: индекс v '99' вне диапазона (объявлено 3)
+exit: 1
+
+=== missing output directory ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/home/giefther/computer_graphics_labs/lab16/assets/house.obj', '/tmp/lab16-cli-w9flfhc3/absent/out.png']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Загружено: 10 вершин, 7 граней, 4 материалов.
+  Foundation: RGB(102, 110, 122)
+  Roof: RGB(184, 61, 41)
+  Sides: RGB(64, 122, 184)
+  Walls: RGB(219, 171, 92)
+Ошибка: Не удалось создать PNG: /tmp/lab16-cli-w9flfhc3/absent/out.png
+exit: 1
+
+=== invalid elevation ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/home/giefther/computer_graphics_labs/lab16/assets/house.obj', '/tmp/lab16-cli-w9flfhc3/bad.png', '35', '91']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Загружено: 10 вершин, 7 граней, 4 материалов.
+  Foundation: RGB(102, 110, 122)
+  Roof: RGB(184, 61, 41)
+  Sides: RGB(64, 122, 184)
+  Walls: RGB(219, 171, 92)
+Ошибка: Азимут должен быть конечным числом, угол места — от -90 до 90 градусов.
+exit: 1
+
+=== invalid dimensions ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/home/giefther/computer_graphics_labs/lab16/assets/house.obj', '/tmp/lab16-cli-w9flfhc3/bad.png', '35', '25', '0', '800']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Загружено: 10 вершин, 7 граней, 4 материалов.
+  Foundation: RGB(102, 110, 122)
+  Roof: RGB(184, 61, 41)
+  Sides: RGB(64, 122, 184)
+  Walls: RGB(219, 171, 92)
+Ошибка: Размер PNG должен быть от 64 до 4096 пикселей по каждой стороне.
+exit: 1
+
+=== invalid numeric input ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '/home/giefther/computer_graphics_labs/lab16/assets/house.obj', '/tmp/lab16-cli-w9flfhc3/bad.png', 'nan', '25']
+cwd: /home/giefther/computer_graphics_labs/lab16
+=== Лабораторная №16: материалы OBJ/MTL ===
+Загружено: 10 вершин, 7 граней, 4 материалов.
+  Foundation: RGB(102, 110, 122)
+  Roof: RGB(184, 61, 41)
+  Sides: RGB(64, 122, 184)
+  Walls: RGB(219, 171, 92)
+Ошибка: Некорректное число (азимут): nan. Дробная часть отделяется точкой.
+exit: 1
+
+=== interactive default model from another directory ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app']
+cwd: /tmp/lab16-cli-w9flfhc3
+stdin: '\ninteractive.png\n35\n25\n320\n240\n'
+=== Лабораторная №16: материалы OBJ/MTL ===
+Путь к OBJ [/home/giefther/computer_graphics_labs/lab16/assets/house.obj]: Загружено: 10 вершин, 7 граней, 4 материалов.
+  Foundation: RGB(102, 110, 122)
+  Roof: RGB(184, 61, 41)
+  Sides: RGB(64, 122, 184)
+  Walls: RGB(219, 171, 92)
+Выходной PNG [render.png]: Азимут, градусы [35]: Угол места, градусы [25]: Ширина PNG [1000]: Высота PNG [800]: Ракурс: азимут 35°, угол места 25°.
+Отрисовано 16 треугольников, 17961 видимых пикселей.
+PNG сохранён: /tmp/lab16-cli-w9flfhc3/interactive.png (320 × 240)
+exit: 0
+
+=== interactive invalid path ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app']
+cwd: /tmp/lab16-cli-w9flfhc3
+stdin: 'absent.obj\n'
+=== Лабораторная №16: материалы OBJ/MTL ===
+Путь к OBJ [/home/giefther/computer_graphics_labs/lab16/assets/house.obj]: Ошибка: Не удалось открыть OBJ 'absent.obj'
+exit: 1
+
+=== truncated interactive input ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app']
+cwd: /tmp/lab16-cli-w9flfhc3
+stdin: '\n'
+=== Лабораторная №16: материалы OBJ/MTL ===
+Путь к OBJ [/home/giefther/computer_graphics_labs/lab16/assets/house.obj]: Загружено: 10 вершин, 7 граней, 4 материалов.
+  Foundation: RGB(102, 110, 122)
+  Roof: RGB(184, 61, 41)
+  Sides: RGB(64, 122, 184)
+  Walls: RGB(219, 171, 92)
+Выходной PNG [render.png]: Ошибка: Ввод завершён до получения всех параметров.
+exit: 1
+
+=== help ===
+argv: ['/home/giefther/computer_graphics_labs/lab16/build/lab16_app', '--help']
+cwd: /home/giefther/computer_graphics_labs/lab16
+Лабораторная №16: OBJ + MTL, закрашивание с Z-буфером.
+
+Интерактивный режим: /home/giefther/computer_graphics_labs/lab16/build/lab16_app
+С параметрами: /home/giefther/computer_graphics_labs/lab16/build/lab16_app model.obj [output.png [azimuth elevation [width height]]]
+Пример: /home/giefther/computer_graphics_labs/lab16/build/lab16_app assets/house.obj build/house.png 35 25 1000 800
+Азимут 0 — вид со стороны +Z, 90 — со стороны +X. Угол места: [-90, 90].
+Размер: 64–4096 по каждой стороне. По умолчанию: 35 25 1000 800.
+Пути с пробелами заключайте в кавычки. MTL ищется относительно OBJ.
+exit: 0
+
+PASS: 15 real-process CLI checks. Blender was not run.

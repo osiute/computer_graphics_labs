@@ -1,0 +1,39 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "lab16: configure",
+            "type": "process",
+            "command": "cmake",
+            "args": ["-S", "${workspaceFolder}", "-B", "${workspaceFolder}/build", "-DCMAKE_BUILD_TYPE=Debug"],
+            "problemMatcher": []
+        },
+        {
+            "label": "lab16: build",
+            "type": "process",
+            "command": "cmake",
+            "args": ["--build", "${workspaceFolder}/build", "--config", "Debug"],
+            "dependsOn": "lab16: configure",
+            "group": {"kind": "build", "isDefault": true},
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "lab16: test",
+            "type": "process",
+            "command": "ctest",
+            "args": ["--test-dir", "${workspaceFolder}/build", "--output-on-failure", "-C", "Debug"],
+            "dependsOn": "lab16: build",
+            "group": {"kind": "test", "isDefault": true},
+            "problemMatcher": []
+        },
+        {
+            "label": "lab16: render house",
+            "type": "process",
+            "command": "${workspaceFolder}/build/lab16_app",
+            "args": ["assets/house.obj", "build/house.png", "35", "25", "1000", "800"],
+            "options": {"cwd": "${workspaceFolder}"},
+            "dependsOn": "lab16: build",
+            "problemMatcher": []
+        }
+    ]
+}
